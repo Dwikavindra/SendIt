@@ -172,7 +172,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     if (data.contains("Connected to the Server!") ||
                         data.contains(": left") ||
                         data.contains(": joined")) {
-                      return (Text("Status:${data}"));
+                      print(data);
+                      return (Text("Status: ${data}"));
                     }
                     return (const Text("Connected to Chat Room"));
                   }
@@ -195,7 +196,8 @@ class _MyHomePageState extends State<MyHomePage> {
                       }
 
                         String sent = String.fromCharCodes(snapshot.data as Uint8List);
-                      sent.contains(": joined ")|| sent.contains(": left")?sent="":messageList.add(sent);
+                      print(sent);
+                      sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
                         return Container(
                             color: const Color.fromRGBO(236, 235, 236, 100),
                             height: MediaQuery
@@ -246,16 +248,17 @@ class _MyHomePageState extends State<MyHomePage> {
                         padding: EdgeInsets.only(top: 5.h),
                         iconSize: 36,
                         onPressed: () {
+                        if (messageList.isNotEmpty) {
+                          scrollcontrol.animateTo(
+                              scrollcontrol.position.maxScrollExtent,
+                              duration: const Duration(milliseconds: 100),
+                              curve: Curves.easeOut);
+                        }
+                        String message = inputController.text;
+                        widget.socket.write("${widget.title}: " + message);
+                        inputController.clear();
+                        }
 
-                          String message = inputController.text;
-                          widget.socket.write("${widget.title}: " + message);
-                          inputController.clear();
-                        } // if (messageList.isNotEmpty) {
-                        //   scrollcontrol.animateTo(
-                        //       scrollcontrol.position.maxScrollExtent,
-                        //       duration: const Duration(milliseconds: 100),
-                        //       curve: Curves.easeOut);
-                        // },
                         ,icon: SvgPicture.asset('assets/images/SendButton.svg'))
                   ],
                 ),
