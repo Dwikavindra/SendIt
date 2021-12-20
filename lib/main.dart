@@ -7,6 +7,7 @@ import 'package:tcp/othermessage.dart';
 import 'package:tcp/ownmessage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
   runApp(MyApp());
@@ -18,14 +19,16 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SubmitPage(),
-    );
+    return ScreenUtilInit(
+        designSize: const Size(375, 812),
+        builder: () => MaterialApp(
+              title: 'Flutter Demo',
+              debugShowCheckedModeBanner: false,
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+              ),
+              home: const SubmitPage(),
+            ));
   }
 }
 
@@ -50,15 +53,14 @@ class _SubmitPageState extends State<SubmitPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Column(children: [
-                    Text(
-                      "What is your name?",
-                      style: GoogleFonts.poppins(fontSize: 20),
-                    ),
+                    Text("What is your name?",
+                        style: TextStyle(fontSize: 20.sp)),
+                    Padding(padding: EdgeInsets.only(top: 5.h)),
                     Container(
-                        margin: EdgeInsets.only(left: 12),
+                        margin: EdgeInsets.only(left: 12.w),
                         width: 330,
                         decoration: BoxDecoration(
-                            color: Color.fromRGBO(214, 214, 214, 100),
+                            color: const Color.fromRGBO(214, 214, 214, 100),
                             borderRadius: BorderRadius.circular(14.65)),
                         child: TextFormField(
                           decoration: const InputDecoration(
@@ -72,7 +74,7 @@ class _SubmitPageState extends State<SubmitPage> {
                                   left: 15, bottom: 11, top: 11, right: 15)),
                           controller: inputController,
                         )),
-                    const Padding(padding: EdgeInsets.only(top: 38)),
+                    Padding(padding: EdgeInsets.only(top: 38.h)),
                     ElevatedButton(
                       onPressed: () async {
                         if (inputController.text.contains(" ")) {
@@ -102,10 +104,11 @@ class _SubmitPageState extends State<SubmitPage> {
                         elevation: 15.0,
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(15.0),
+                        padding: EdgeInsets.all(15.h),
                         child: Text(
                           'Enter',
-                          style: TextStyle(color: Colors.white, fontSize: 20),
+                          style:
+                              TextStyle(color: Colors.white, fontSize: 15.sp),
                         ),
                       ),
                     )
@@ -137,17 +140,43 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<String> messageList = [];
 
+  late Stream broadcaststream;
+
+  @override
+  void initState() {
+    broadcaststream = widget.socket.asBroadcastStream();
+    super.initState();
+  }
+
   @override
   void dispose() {
-    inputController.dispose();
     widget.socket.destroy();
     widget.socket.close();
+    inputController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+            backgroundColor: Colors.black,
+            title: StreamBuilder(
+                stream: broadcaststream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData == false) {
+                    return (const Text("Connecting..."));
+                  }
+                  else {
+                    String data = String.fromCharCodes(snapshot.data as Uint8List);
+                    if (data.contains("Connected to the Server!") ||
+                        data.contains(": left") ||
+                        data.contains(": joined")) {
+                      return (Text("Status:${data}"));
+                    }
+                    return (const Text("Connected to Chat Room"));
+                  }
+                })),
         backgroundColor: Colors.white,
         body: SafeArea(
           child: SingleChildScrollView(
@@ -155,7 +184,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
               children: <Widget>[
                 StreamBuilder(
-                    stream: widget.socket,
+                    stream: broadcaststream,
                     builder: (context, snapshot) {
                       if (snapshot.hasData == false ||
                           String.fromCharCodes(snapshot.data as Uint8List)
@@ -164,38 +193,36 @@ class _MyHomePageState extends State<MyHomePage> {
                         return Container(
                             height: MediaQuery.of(context).size.height - 300);
                       }
-                      String sent =
-                          String.fromCharCodes(snapshot.data as Uint8List);
-                      messageList.add(sent);
-                      return Container(
-                          color: const Color.fromRGBO(236, 235, 236, 100),
-                          height: MediaQuery.of(context).size.height - 300,
-                          child: ListView.builder(
-                              controller: scrollcontrol,
-                              shrinkWrap: true,
-                              itemCount: messageList.length,
-                              itemBuilder: (BuildContext context, int index) {
-                                String messagerecieved = messageList[index];
-                                List<String> messagedisected =
-                                    messagerecieved.split(" ");
-                                if (messagedisected[0] != "${widget.title}:" &&
-                                    messagerecieved.contains(
-                                            "Connected to the server") ==
-                                        false) {
-                                  print(messagedisected[0]);
-                                  return OtherMessage(
-                                      message: messageList[index]);
-                                } else {
-                                  return OwnMessage(
-                                      message: messageList[index]);
-                                }
-                              }));
-                    }),
+
+                        String sent = String.fromCharCodes(snapshot.data as Uint8List);
+                      sent.contains(": joined ")|| sent.contains(": left")?sent="":messageList.add(sent);
+                        return Container(
+                            color: const Color.fromRGBO(236, 235, 236, 100),
+                            height: MediaQuery
+                                .of(context)
+                                .size
+                                .height - 300,
+                            child: ListView.builder(
+                                controller: scrollcontrol,
+                                shrinkWrap: true,
+                                itemCount: messageList.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  String messagerecieved = messageList[index];
+                                  if (messagerecieved.contains("${widget.title}:" )==false){
+                                    return OtherMessage(
+                                        message: messageList[index]);
+                                  } else {
+                                    return OwnMessage(
+                                        message: messageList[index]);
+                                  }
+                                }));
+                      }),
                 Row(
                   children: [
                     Container(
-                      margin: EdgeInsets.only(left: 12),
-                      width: 330,
+                      margin: EdgeInsets.only(left: 14.w),
+                      width: 300.w,
+                      height: 39.h,
                       decoration: BoxDecoration(
                           color: Color.fromRGBO(214, 214, 214, 100),
                           borderRadius: BorderRadius.circular(14.65)),
@@ -211,26 +238,25 @@ class _MyHomePageState extends State<MyHomePage> {
                             errorBorder: InputBorder.none,
                             disabledBorder: InputBorder.none,
                             contentPadding: EdgeInsets.only(
-                                left: 15, bottom: 11, top: 11, right: 15)),
+                                left: 15, bottom: 11, top: 5, right: 15)),
                         controller: inputController,
                       ),
                     ),
                     IconButton(
-                        padding:
-                            const EdgeInsets.only(left: 10, right: 12, top: 10),
-                        iconSize: 50,
+                        padding: EdgeInsets.only(top: 5.h),
+                        iconSize: 36,
                         onPressed: () {
-                          if (messageList.isNotEmpty) {
-                            scrollcontrol.animateTo(
-                                scrollcontrol.position.maxScrollExtent,
-                                duration: const Duration(milliseconds: 100),
-                                curve: Curves.easeOut);
-                          }
+
                           String message = inputController.text;
                           widget.socket.write("${widget.title}: " + message);
                           inputController.clear();
-                        },
-                        icon: SvgPicture.asset('assets/images/SendButton.svg'))
+                        } // if (messageList.isNotEmpty) {
+                        //   scrollcontrol.animateTo(
+                        //       scrollcontrol.position.maxScrollExtent,
+                        //       duration: const Duration(milliseconds: 100),
+                        //       curve: Curves.easeOut);
+                        // },
+                        ,icon: SvgPicture.asset('assets/images/SendButton.svg'))
                   ],
                 ),
               ],

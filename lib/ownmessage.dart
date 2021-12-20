@@ -76,7 +76,9 @@ class OwnMessage extends StatelessWidget {
     List<String> finalresult = [];
     String result = "";
 
+
     for (int i = 0; i < text.length; i++) {
+
       if ((i + 1 < text.length && text[i + 1] == " ") || i == text.length - 1) {
         result += text[i];
         finalresult.add(result);
