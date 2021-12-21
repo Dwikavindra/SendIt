@@ -9,12 +9,14 @@ class OwnMessage extends StatelessWidget {
     required this.message,
   }) : super(key: key);
 
-  final String message;
+  final String message;// to get the message from the constructor
   @override
   Widget build(BuildContext context) {
-    List<String> messagesplit = splitmessage(message);
-    String username = username_search(messagesplit[0]);
-    String withoutusername = messagewithoutusername(messagesplit);
+    List<String> messagesplit = splitmessage(message);   // split the message to a list of string
+
+    String username = username_search(messagesplit[0]); // get the username
+
+    String withoutusername = messagewithoutusername(messagesplit); // get the message without username
 
     return Column(
       children: [
@@ -23,14 +25,14 @@ class OwnMessage extends StatelessWidget {
           child: Align(
             alignment: Alignment.centerRight,
             child: Text(username,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.poppins(// to display username on top of the mssage
                   fontSize: 15,
                 )),
           ),
         ),
         Align(
-          alignment: Alignment.centerRight,
-          child: ConstrainedBox(
+          alignment: Alignment.centerRight,// align it to the right if message is our own message
+          child: ConstrainedBox(// below is where the widget for the message
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width - 45,
               ),
@@ -61,7 +63,8 @@ class OwnMessage extends StatelessWidget {
     );
   }
 
-  static String messagewithoutusername(List<String> text) {
+  static String messagewithoutusername(List<String> text) {// function to get the message
+    //without the username
     String result = "";
     for (int i = 1; i < text.length; i++) {
       if (text[i] == " " && i == 1) {
@@ -73,6 +76,8 @@ class OwnMessage extends StatelessWidget {
   }
 
   static List<String> splitmessage(String text) {
+    //function to split the incoming message into a
+    //list of strings
     List<String> finalresult = [];
     String result = "";
 
@@ -94,6 +99,7 @@ class OwnMessage extends StatelessWidget {
   }
 
   static String username_search(String text) {
+    //to get the username
     String result = "";
     for (int i = 0; i < text.length; i++) {
       if (text[i] == ":") {

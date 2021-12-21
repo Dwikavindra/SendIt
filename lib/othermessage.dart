@@ -29,7 +29,7 @@ class OtherMessage extends StatelessWidget {
           ),
         ),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: Alignment.centerLeft,// align to the left if message is coming from others
           child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width - 45,
