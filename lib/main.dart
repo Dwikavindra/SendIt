@@ -43,81 +43,85 @@ class _SubmitPageState extends State<SubmitPage> {
   final inputController = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              reverse: true,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(children: [
-                    Text("What is your name?",
-                        style: TextStyle(fontSize: 20.sp)),
-                    Padding(padding: EdgeInsets.only(top: 5.h)),
-                    Container(
-                        margin: EdgeInsets.only(left: 12.w),
-                        width: 330,
-                        decoration: BoxDecoration(
-                            color: const Color.fromRGBO(214, 214, 214, 100),
-                            borderRadius: BorderRadius.circular(14.65)),
-                        child: TextFormField(
-                          decoration: const InputDecoration(
-                              hintText: "Do not enter a username with spaces ",
-                              border: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              disabledBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.only(
-                                  left: 15, bottom: 11, top: 11, right: 15)),
-                          controller: inputController,
-                        )),
-                    Padding(padding: EdgeInsets.only(top: 38.h)),
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (inputController.text.contains(" ")) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  backgroundColor: Colors.red,
-                                  content: Text('Username still has space')));
-                          return;
-                        }
-                        final socket =
-                            await Socket.connect('34.101.88.159', 3389);
-                        print(
-                            'Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
-                        socket.write(inputController.text);
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => MyHomePage(
-                                  title: inputController.text, socket: socket)),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.black,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
+    return GestureDetector(
+      onTap:()=>FocusScope.of(context).unfocus(),
+      child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                reverse: true,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Column(children: [
+                      Text("What is your name?",
+                          style: TextStyle(fontSize: 20.sp)),
+                      Padding(padding: EdgeInsets.only(top: 5.h)),
+                      Container(
+                          margin: EdgeInsets.only(left: 12.w),
+                          width: 330,
+                          decoration: BoxDecoration(
+                              color: const Color.fromRGBO(214, 214, 214, 100),
+                              borderRadius: BorderRadius.circular(14.65)),
+                          child: TextFormField(
+                            decoration: const InputDecoration(
+                                hintText: "Do not enter a username with spaces ",
+                                border: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
+                                contentPadding: EdgeInsets.only(
+                                    left: 15, bottom: 11, top: 11, right: 15)),
+                            controller: inputController,
+                          )),
+                      Padding(padding: EdgeInsets.only(top: 38.h)),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (inputController.text.contains(" ")) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text('Username still has space')));
+                            return;
+                          }
+                          final socket =
+                              await Socket.connect('34.101.88.159', 3389);
+                          print(
+                              'Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
+                          socket.write(inputController.text);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MyHomePage(
+                                    title: inputController.text, socket: socket)),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary: Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          elevation: 15.0,
                         ),
-                        elevation: 15.0,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(15.h),
-                        child: Text(
-                          'Enter',
-                          style:
-                              TextStyle(color: Colors.white, fontSize: 15.sp),
+                        child: Padding(
+                          padding: EdgeInsets.all(15.h),
+                          child: Text(
+                            'Enter',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 15.sp),
+                          ),
                         ),
-                      ),
-                    )
-                  ]),
-                ],
+                      )
+                    ]),
+                  ],
+                ),
               ),
             ),
-          ),
-        ));
+          )),
+    );
   }
 }
 
@@ -158,113 +162,117 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-            backgroundColor: Colors.black,
-            title: StreamBuilder(
-                stream: broadcaststream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasData == false) {
-                    return (const Text("Connecting..."));
-                  }
-                  else {
-                    String data = String.fromCharCodes(snapshot.data as Uint8List);
-                    if (data.contains("Connected to the Server!") ||
-                        data.contains(": left") ||
-                        data.contains(": joined")) {
-                      print(data);
-                      return (Text("Status: ${data}"));
+    return GestureDetector(
+      onTap: ()=>FocusScope.of(context).unfocus(),
+      child: Scaffold(
+          appBar: AppBar(
+              backgroundColor: Colors.black,
+              title: StreamBuilder(
+                  stream: broadcaststream,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData == false) {
+                      return (const Text("Connecting..."));
                     }
-                    return (const Text("Connected to Chat Room"));
-                  }
-                })),
-        backgroundColor: Colors.white,
-        body:Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
+                    else {
+                      String data = String.fromCharCodes(snapshot.data as Uint8List);
+                      if (data.contains("Connected to the Server!") ||
+                          data.contains(": left") ||
+                          data.contains(": joined")) {
+                        print(data);
+                        return (Text("Status: ${data}"));
+                      }
+                      return (const Text("Connected to Chat Room"));
+                    }
+                  })),
+          backgroundColor: Colors.white,
+          body:Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
 
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              StreamBuilder(
-                      stream: broadcaststream,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData == false ||
-                            String.fromCharCodes(snapshot.data as Uint8List)
-                                    .contains("Connected to the server!") ==
-                                true) {
-                          return Container(
-                              height: MediaQuery.of(context).size.height - 300);
-                        }
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                StreamBuilder(
+                        stream: broadcaststream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData == false ||
+                              String.fromCharCodes(snapshot.data as Uint8List)
+                                      .contains("Connected to the server!") ==
+                                  true) {
+                            return Container(
+                                height: MediaQuery.of(context).size.height - 300);
+                          }
 
-                          String sent = String.fromCharCodes(snapshot.data as Uint8List);
-                        print(sent);
-                        sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
-                          return Flexible(
-                            child: ListView.builder(
-                                controller: scrollcontrol,
-                                itemCount: messageList.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  String messagerecieved = messageList[index];
-                                  if (messagerecieved.contains("${widget.title}:" )==false){
-                                    return OtherMessage(
-                                        message: messageList[index]);
-                                  } else {
-                                    return OwnMessage(
-                                        message: messageList[index]);
-                                  }
-                                }),
-                          );
-                        }),
-            SingleChildScrollView(
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Row(
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(left: 14.w,bottom:20.w),
-                      width: 300.w,
-                      height: 39.h,
-                      decoration: BoxDecoration(
-                          color: Color.fromRGBO(214, 214, 214, 100),
-                          borderRadius: BorderRadius.circular(14.65)),
-                      child: TextFormField(
-                        keyboardType: TextInputType.multiline,
-                        minLines: 1,
-                        maxLines: 5,
-                        decoration: const InputDecoration(
-                            hintText: 'Enter your message',
-                            border: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            errorBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.only(
-                                left: 15, bottom: 11, top: 5, right: 15)),
-                        controller: inputController,
-                      ),
-                    ),
-                    IconButton(
-                        padding: EdgeInsets.only(top: 5.h),
-                        iconSize: 36,
-                        onPressed: () {
-                          String message = inputController.text;
-                          widget.socket.write("${widget.title}: " + message);
-                          inputController.clear();
-                          Timer(Duration(milliseconds: 100), () {
-                            scrollcontrol.animateTo(
-                              scrollcontrol.position.maxScrollExtent,
-                              curve: Curves.easeOut,
-                              duration: const Duration(milliseconds: 300),
+                            String sent = String.fromCharCodes(snapshot.data as Uint8List);
+                          print(sent);
+                          sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
+                            return Flexible(
+                              child: ListView.builder(
+                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                  controller: scrollcontrol,
+                                  itemCount: messageList.length,
+                                  itemBuilder: (BuildContext context, int index) {
+                                    String messagerecieved = messageList[index];
+                                    if (messagerecieved.contains("${widget.title}:" )==false){
+                                      return OtherMessage(
+                                          message: messageList[index]);
+                                    } else {
+                                      return OwnMessage(
+                                          message: messageList[index]);
+                                    }
+                                  }),
                             );
-                          });
-                        }
+                          }),
+              SingleChildScrollView(
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(left: 14.w,bottom:20.w),
+                        width: 300.w,
+                        height: 39.h,
+                        decoration: BoxDecoration(
+                            color: Color.fromRGBO(214, 214, 214, 100),
+                            borderRadius: BorderRadius.circular(14.65)),
+                        child: TextFormField(
+                          keyboardType: TextInputType.multiline,
+                          minLines: 1,
+                          maxLines: 5,
+                          decoration: const InputDecoration(
+                              hintText: 'Enter your message',
+                              border: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.only(
+                                  left: 15, bottom: 11, top: 5, right: 15)),
+                          controller: inputController,
+                        ),
+                      ),
+                      IconButton(
+                          padding: EdgeInsets.only(top: 5.h),
+                          iconSize: 36,
+                          onPressed: () {
+                            String message = inputController.text;
+                            widget.socket.write("${widget.title}: " + message);
+                            inputController.clear();
+                            Timer(Duration(milliseconds: 100), () {
+                              scrollcontrol.animateTo(
+                                scrollcontrol.position.maxScrollExtent,
+                                curve: Curves.easeOut,
+                                duration: const Duration(milliseconds: 300),
+                              );
+                            });
+                          }
 
-                        ,icon: SvgPicture.asset('assets/images/SendButton.svg'))
-                  ],
+                          ,icon: SvgPicture.asset('assets/images/SendButton.svg'))
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ])));
+          ]))),
+    );
   }
 }
