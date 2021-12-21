@@ -44,13 +44,14 @@ class _SubmitPageState extends State<SubmitPage> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap:()=>FocusScope.of(context).unfocus(),
+      onTap:()=>FocusScope.of(context).unfocus(),// dismiss when tapped
       child: Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,//dismiss keyboard when
+                // scrolled up
                 reverse: true,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -85,21 +86,22 @@ class _SubmitPageState extends State<SubmitPage> {
                                 const SnackBar(
                                     backgroundColor: Colors.red,
                                     content: Text('Username still has space')));
-                            return;
+                            return;// check if the username has space if it has return nothing and show a warning
+                            // in the form a snackbar
                           }
                           final socket =
-                              await Socket.connect('34.101.88.159', 3389);
+                              await Socket.connect('34.101.88.159', 3389);// to connect to server
                           print(
                               'Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
-                          socket.write(inputController.text);
-                          Navigator.push(
+                          socket.write(inputController.text);// write the name to the server
+                          Navigator.push(// to switch to another page
                             context,
                             MaterialPageRoute(
                                 builder: (context) => MyHomePage(
                                     title: inputController.text, socket: socket)),
                           );
                         },
-                        style: ElevatedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(// the enter button
                           primary: Colors.black,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25),
