@@ -143,20 +143,26 @@ class _MyHomePageState extends State<MyHomePage> {
   final ScrollController scrollcontrol = ScrollController();
 
   List<String> messageList = [];
-
+/*First we declare inputcontroller to control input from textfiled, scrollcontroller
+* scroll to controll scroll in listview for message, we also declare message list to store
+* the messages sent
+* */
   late Stream broadcaststream;
-
+/*Since  socket is in a form of Stream in Dart, A Stream provides a way to receive a sequence of  async events
+* */
   @override
   void initState() {
     broadcaststream = widget.socket.asBroadcastStream();
+    /*we cast broadcaststream with the function widget.socket.asBroadcastStream so that the stream
+    * could be listened by more than one StreamBuilder*/
     super.initState();
   }
 
   @override
   void dispose() {
-    widget.socket.destroy();
-    widget.socket.close();
-    inputController.dispose();
+    widget.socket.destroy();/*to destroy the socket when page is dismissed*/
+    widget.socket.close();/*to close the socket when page is dismissed*/
+    inputController.dispose();/*dispose the input controller when page is dismissed*/
     super.dispose();
   }
 
@@ -164,20 +170,31 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: ()=>FocusScope.of(context).unfocus(),
+      // Gesture Detector to close keyboard when user taps the screen
       child: Scaffold(
-          appBar: AppBar(
+          appBar: AppBar(//we use a streambuilder on the appbar to listen to status call, and build the status bar
               backgroundColor: Colors.black,
               title: StreamBuilder(
-                  stream: broadcaststream,
+                //Widget that builds itself based on the latest snapshot of interaction with a Stream.
+                /*We use streambuilder so that we dont have to use await whic slows down the process
+                of receiving the data  */
+                  stream: broadcaststream,//input stream as broadcast stream
                   builder: (context, snapshot) {
-                    if (snapshot.hasData == false) {
-                      return (const Text("Connecting..."));
+                    //snapshot is to capture the data from the stream that comes from the server
+                    if (snapshot.hasData == false) {//check if snapshot has data
+                      return (const Text("Connecting..."));// return a text if it doesnt
                     }
-                    else {
+                    else {//else
                       String data = String.fromCharCodes(snapshot.data as Uint8List);
+                      // we read the data as a String by converting from Uint8List
                       if (data.contains("Connected to the Server!") ||
                           data.contains(": left") ||
                           data.contains(": joined")) {
+                        // function bool contains(
+                        // Pattern other,
+                        // [int startIndex = 0]
+                        // )
+                        // Whether this string contains a match of other.
                         print(data);
                         return (Text("Status: ${data}"));
                       }
@@ -192,7 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                StreamBuilder(
+                StreamBuilder(// Use this streambuilder to listen for mesages
                         stream: broadcaststream,
                         builder: (context, snapshot) {
                           if (snapshot.hasData == false ||
@@ -207,17 +224,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
                             String sent = String.fromCharCodes(snapshot.data as Uint8List);
                           print(sent);
-                          sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
+                          sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")?
+                          print("message not sent"):messageList.add(sent);// do a check if the string sent
+                          //is a status then don't add it to the messageList else append to the list
                             return Flexible(
-                              child: ListView.builder(
+                              child: ListView.builder(//create a scrollable widget or chat page
+
                                   controller: scrollcontrol,
                                   itemCount: messageList.length,
                                   itemBuilder: (BuildContext context, int index) {
                                     String messagerecieved = messageList[index];
                                     if (messagerecieved.contains("${widget.title}:" )==false){
+                                      //detect if the message is sent from the user if its not than return  a widgt
+                                      // Other Message
                                       return OtherMessage(
                                           message: messageList[index]);
                                     } else {
+                                      //else return a widget of  OwnMessage
                                       return OwnMessage(
                                           message: messageList[index]);
                                     }
@@ -236,8 +259,8 @@ class _MyHomePageState extends State<MyHomePage> {
                         decoration: BoxDecoration(
                             color: Color.fromRGBO(214, 214, 214, 100),
                             borderRadius: BorderRadius.circular(14.65)),
-                        child: TextFormField(
-                          keyboardType: TextInputType.multiline,
+                        child: TextFormField(// text input to listen for message
+                          keyboardType: TextInputType.multiline,//so that we could enter and have multiple lines of words
                           minLines: 1,
                           maxLines: 5,
                           decoration: const InputDecoration(
@@ -256,12 +279,17 @@ class _MyHomePageState extends State<MyHomePage> {
                           padding: EdgeInsets.only(top: 5.h),
                           iconSize: 36,
                           onPressed: () {
+                            //when the button is pressed
                             String message = inputController.text;
+                            //get the text from TextFormField
                             widget.socket.write("${widget.title}: " + message);
+                            //send it to the server by socket write
                             inputController.clear();
+                            //delete the words written in the text field
                             Timer(Duration(milliseconds: 100), () {
                               scrollcontrol.animateTo(
                                 scrollcontrol.position.maxScrollExtent,
+                                //scroll the listview to the very bottom everytime the user inputs a message
                                 curve: Curves.easeOut,
                                 duration: const Duration(milliseconds: 300),
                               );
