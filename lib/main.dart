@@ -199,8 +199,10 @@ class _MyHomePageState extends State<MyHomePage> {
                               String.fromCharCodes(snapshot.data as Uint8List)
                                       .contains("Connected to the server!") ==
                                   true) {
-                            return Container(
-                                height: MediaQuery.of(context).size.height - 300);
+                            return Flexible(
+                              child: Container(
+                                  height: MediaQuery.of(context).size.height - 300),
+                            );
                           }
 
                             String sent = String.fromCharCodes(snapshot.data as Uint8List);
@@ -208,7 +210,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
                             return Flexible(
                               child: ListView.builder(
-                                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                   controller: scrollcontrol,
                                   itemCount: messageList.length,
                                   itemBuilder: (BuildContext context, int index) {
