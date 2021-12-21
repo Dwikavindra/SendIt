@@ -136,7 +136,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final inputController = TextEditingController();
 
-  ScrollController scrollcontrol = ScrollController();
+  final ScrollController scrollcontrol = ScrollController();
 
   List<String> messageList = [];
 
@@ -179,34 +179,30 @@ class _MyHomePageState extends State<MyHomePage> {
                   }
                 })),
         backgroundColor: Colors.white,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            reverse: true,
-            child: Column(
-              children: <Widget>[
-                StreamBuilder(
-                    stream: broadcaststream,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData == false ||
-                          String.fromCharCodes(snapshot.data as Uint8List)
-                                  .contains("Connected to the server!") ==
-                              true) {
-                        return Container(
-                            height: MediaQuery.of(context).size.height - 300);
-                      }
+        body:Container(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
 
-                        String sent = String.fromCharCodes(snapshot.data as Uint8List);
-                      print(sent);
-                      sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
-                        return Container(
-                            color: const Color.fromRGBO(236, 235, 236, 100),
-                            height: MediaQuery
-                                .of(context)
-                                .size
-                                .height - 300,
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              StreamBuilder(
+                      stream: broadcaststream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData == false ||
+                            String.fromCharCodes(snapshot.data as Uint8List)
+                                    .contains("Connected to the server!") ==
+                                true) {
+                          return Container(
+                              height: MediaQuery.of(context).size.height - 300);
+                        }
+
+                          String sent = String.fromCharCodes(snapshot.data as Uint8List);
+                        print(sent);
+                        sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")? print("message not sent"):messageList.add(sent);
+                          return Flexible(
                             child: ListView.builder(
                                 controller: scrollcontrol,
-                                shrinkWrap: true,
                                 itemCount: messageList.length,
                                 itemBuilder: (BuildContext context, int index) {
                                   String messagerecieved = messageList[index];
@@ -217,12 +213,16 @@ class _MyHomePageState extends State<MyHomePage> {
                                     return OwnMessage(
                                         message: messageList[index]);
                                   }
-                                }));
-                      }),
-                Row(
+                                }),
+                          );
+                        }),
+            SingleChildScrollView(
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Row(
                   children: [
                     Container(
-                      margin: EdgeInsets.only(left: 14.w),
+                      margin: EdgeInsets.only(left: 14.w,bottom:20.w),
                       width: 300.w,
                       height: 39.h,
                       decoration: BoxDecoration(
@@ -248,23 +248,23 @@ class _MyHomePageState extends State<MyHomePage> {
                         padding: EdgeInsets.only(top: 5.h),
                         iconSize: 36,
                         onPressed: () {
-                        if (messageList.isNotEmpty) {
-                          scrollcontrol.animateTo(
+                          String message = inputController.text;
+                          widget.socket.write("${widget.title}: " + message);
+                          inputController.clear();
+                          Timer(Duration(milliseconds: 100), () {
+                            scrollcontrol.animateTo(
                               scrollcontrol.position.maxScrollExtent,
-                              duration: const Duration(milliseconds: 100),
-                              curve: Curves.easeOut);
-                        }
-                        String message = inputController.text;
-                        widget.socket.write("${widget.title}: " + message);
-                        inputController.clear();
+                              curve: Curves.easeOut,
+                              duration: const Duration(milliseconds: 300),
+                            );
+                          });
                         }
 
                         ,icon: SvgPicture.asset('assets/images/SendButton.svg'))
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ));
+        ])));
   }
 }
