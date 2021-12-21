@@ -43,9 +43,10 @@ class SubmitPage extends StatefulWidget {
   @override
   _SubmitPageState createState() => _SubmitPageState();
 }
-
 class _SubmitPageState extends State<SubmitPage> {
   final inputController = TextEditingController();
+
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -99,11 +100,11 @@ class _SubmitPageState extends State<SubmitPage> {
                           print(
                               'Connected to: ${socket.remoteAddress.address}:${socket.remotePort}');
                           socket.write(inputController.text);// write the name to the server
+                          final page=MyHomePage(title:inputController.text,socket: socket);
                           Navigator.push(// to switch to another page
                             context,
                             MaterialPageRoute(
-                                builder: (context) => MyHomePage(
-                                    title: inputController.text, socket: socket)),
+                                builder: (context) => page),
                           );
                         },
                         style: ElevatedButton.styleFrom(// the enter button
@@ -135,6 +136,7 @@ class _SubmitPageState extends State<SubmitPage> {
 class MyHomePage extends StatefulWidget {
   final Socket socket;
 
+
   MyHomePage({Key? key, required this.title, required this.socket})
       : super(key: key);
 
@@ -148,21 +150,66 @@ class _MyHomePageState extends State<MyHomePage> {
   final inputController = TextEditingController();
 
   final ScrollController scrollcontrol = ScrollController();
-
   List<String> messageList = [];
+
+
 /*First we declare inputcontroller to control input from textfiled, scrollcontroller
 * scroll to controll scroll in listview for message, we also declare message list to store
 * the messages sent
 * */
   late Stream broadcaststream;
+  late StreamBuilder myStreambuilder;
 /*Since  socket is in a form of Stream in Dart, A Stream provides a way to receive a sequence of  async events
 * */
   @override
   void initState() {
-    broadcaststream = widget.socket.asBroadcastStream();
+
     /*we cast broadcaststream with the function widget.socket.asBroadcastStream so that the stream
     * could be listened by more than one StreamBuilder*/
     super.initState();
+    broadcaststream = widget.socket.asBroadcastStream();
+    /*casted the stream builder her so that the stream does not rebuild everytime the keyboard resets*/
+    myStreambuilder=StreamBuilder(// Use this streambuilder to listen for mesages
+        stream: broadcaststream,
+        builder: (context, snapshot) {
+          if (snapshot.hasData == false ||
+              String.fromCharCodes(snapshot.data as Uint8List)
+                  .contains("Connected to the server!") ==
+                  true) {
+            return Flexible(
+              child: Container(
+                  height: 900.h),
+            );
+          }
+
+          String sent = String.fromCharCodes(snapshot.data as Uint8List);
+          print("Message:$sent");
+          sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")?
+          print("message not sent"):messageList.add(sent);// do a check if the string sent
+          //is a status then don't add it to the messageList else append to the list
+          return Flexible(
+            child: Container(
+              height:900.h,
+              child: ListView.builder(//create a scrollable widget or chat page
+
+                  controller: scrollcontrol,
+                  itemCount: messageList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    String messagerecieved = messageList[index];
+                    if (messagerecieved.contains("${widget.title}:" )==false){
+                      //detect if the message is sent from the user if its not than return  a widgt
+                      // Other Message
+                      final othermessage=OtherMessage(message:messageList[index]);
+                      return othermessage;
+                    } else {
+                      //else return a widget of  OwnMessage
+                      final ownmessage=OwnMessage(message:messageList[index]);
+                      return ownmessage;
+                    }
+                  }),
+            ),
+          );
+        });
   }
 
   @override
@@ -210,57 +257,20 @@ class _MyHomePageState extends State<MyHomePage> {
                   })),
           backgroundColor: Colors.white,
           body:Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
+            height: 600.h,
+            width: 500.w,
 
             child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                StreamBuilder(// Use this streambuilder to listen for mesages
-                        stream: broadcaststream,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData == false ||
-                              String.fromCharCodes(snapshot.data as Uint8List)
-                                      .contains("Connected to the server!") ==
-                                  true) {
-                            return Flexible(
-                              child: Container(
-                                  height: MediaQuery.of(context).size.height - 300),
-                            );
-                          }
-
-                            String sent = String.fromCharCodes(snapshot.data as Uint8List);
-                          print(sent);
-                          sent.contains(": joined")|| sent.contains(": left")||sent.contains(": ready")?
-                          print("message not sent"):messageList.add(sent);// do a check if the string sent
-                          //is a status then don't add it to the messageList else append to the list
-                            return Flexible(
-                              child: ListView.builder(//create a scrollable widget or chat page
-
-                                  controller: scrollcontrol,
-                                  itemCount: messageList.length,
-                                  itemBuilder: (BuildContext context, int index) {
-                                    String messagerecieved = messageList[index];
-                                    if (messagerecieved.contains("${widget.title}:" )==false){
-                                      //detect if the message is sent from the user if its not than return  a widgt
-                                      // Other Message
-                                      return OtherMessage(
-                                          message: messageList[index]);
-                                    } else {
-                                      //else return a widget of  OwnMessage
-                                      return OwnMessage(
-                                          message: messageList[index]);
-                                    }
-                                  }),
-                            );
-                          }),
+                myStreambuilder,
               SingleChildScrollView(
                 child: Align(
-                  alignment: Alignment.bottomLeft,
+                  alignment: Alignment.bottomCenter,
                   child: Row(
                     children: [
                       Container(
-                        margin: EdgeInsets.only(left: 14.w,bottom:20.w),
+                        margin: EdgeInsets.only(left: 14.w,bottom:0.w),
                         width: 300.w,
                         height: 39.h,
                         decoration: BoxDecoration(
